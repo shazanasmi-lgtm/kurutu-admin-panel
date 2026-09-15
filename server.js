@@ -156,13 +156,21 @@ function getLocalIp() {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// DATA DIRECTORY SETUP
+// DATA DIRECTORY SETUP (Safe for Vercel / Serverless read-only filesystem)
 // ────────────────────────────────────────────────────────────────────────────
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+const dataDir = process.env.VERCEL ? path.join(os.tmpdir(), 'data') : path.join(__dirname, 'data');
+try {
+  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+} catch (e) {
+  console.warn('Warning creating dataDir:', e.message);
+}
 
-const uploadsDir = path.join(__dirname, 'public', 'uploads');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+const uploadsDir = process.env.VERCEL ? path.join(os.tmpdir(), 'uploads') : path.join(__dirname, 'public', 'uploads');
+try {
+  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+} catch (e) {
+  console.warn('Warning creating uploadsDir:', e.message);
+}
 
 // ────────────────────────────────────────────────────────────────────────────
 // JSON PERSISTENCE HELPERS
