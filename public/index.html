@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="si">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Kurutu Keyboard</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Sinhala:wght@400;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- ================================================================== -->
+  <!-- LOGIN OVERLAY — shown until admin key is verified                   -->
+  <!-- ================================================================== -->
+  <div id="login-overlay" class="login-overlay">
+    <div class="login-card">
+      <div class="login-logo">
+        <span style="font-size:2.5rem;">⌨️</span>
+        <h1>Kurutu Admin</h1>
+        <p>Enter your admin secret key to continue</p>
+      </div>
+      <div class="login-form-group">
+        <label for="login-key-input">Admin Secret Key</label>
+        <div class="login-input-wrapper">
+          <input type="password" id="login-key-input" placeholder="Enter admin key..." autocomplete="off"
+            spellcheck="false">
+          <button type="button" id="login-toggle-visibility" title="Show/Hide">👁️</button>
+        </div>
+      </div>
+      <div id="login-error" class="login-error" style="display:none;">❌ Invalid admin key. Please try again.</div>
+      <button class="login-submit-btn" id="login-submit-btn">🔐 Login to Admin Panel</button>
+      <p class="login-hint">Key is set in <code>.env → ADMIN_SECRET_KEY</code></p>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="icon">⌨️</span>
+      <div class="brand-text">
+        <span class="title">Kurutu Keyboard</span>
+        <span class="version">Admin Console v2.1</span>
+      </div>
+    </div>
+    <ul class="nav" id="sidebar-nav">
+      <li class="active" data-target="dashboard">📊 Dashboard</li>
+      <li data-target="broadcast">🔔 Broadcast Push</li>
+      <li data-target="themes">🎨 Theme Manager</li>
+      <li data-target="ai">✨ AI Model Settings</li>
+      <li data-target="users">👥 User Management</li>
+      <li data-target="crashes">⚠️ Crash Reports</li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="system-status-indicator" id="system-status-indicator">
+        <span class="status-dot"></span>
+        <span class="status-label" id="status-label">Checking System...</span>
+      </div>
+      <button class="logout-btn" id="logout-btn" title="Logout" style="display:none;">🔓 Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="content">
+    <header class="header" id="page-header">
+      <div>
+        <h1 id="header-title">Dashboard Overview</h1>
+        <p id="header-desc">System analytics, usage statistics, and real-time active users.</p>
+      </div>
+      <button class="btn-secondary" id="btn-refresh-data" title="Refresh Page Data">🔄 Refresh</button>
+    </header>
+
+    <!-- Global Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- ==================================================================== -->
+    <!-- SECTION 1: DASHBOARD -->
+    <!-- ==================================================================== -->
+    <div id="section-dashboard" class="page-section active-section">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon icon-users">👥</div>
+          <div class="stat-info">
+            <h3>Total Active Users</h3>
+            <p id="dash-total-users">0</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-themes">🎨</div>
+          <div class="stat-info">
+            <h3>Active Themes</h3>
+            <p id="dash-active-themes">0</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-ai">✨</div>
+          <div class="stat-info">
+            <h3>AI API Calls</h3>
+            <p id="dash-ai-calls">0</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-crashes">⚠️</div>
+          <div class="stat-info">
+            <h3>Crash Rate</h3>
+            <p id="dash-crash-rate">0.0%</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid gap-24">
+        <!-- Weekly Active Users Chart Card -->
+        <div class="card chart-container">
+          <div class="card-header">
+            <h2>Weekly Active Users (WAU)</h2>
+            <span class="badge badge-success">Live Trend</span>
+          </div>
+          <div class="mock-chart" id="wau-chart">
+            <div class="bar" style="height: 15%"><span class="bar-val">0</span><span>Mon</span></div>
+            <div class="bar" style="height: 15%"><span class="bar-val">0</span><span>Tue</span></div>
+            <div class="bar" style="height: 15%"><span class="bar-val">0</span><span>Wed</span></div>
+            <div class="bar" style="height: 15%"><span class="bar-val">0</span><span>Thu</span></div>
+            <div class="bar" style="height: 15%"><span class="bar-val">0</span><span>Fri</span></div>
+            <div class="bar" style="height: 15%"><span class="bar-val">0</span><span>Sat</span></div>
+            <div class="bar" style="height: 15%"><span class="bar-val">0</span><span>Sun</span></div>
+          </div>
+        </div>
+
+        <!-- Quick Activity Summary -->
+        <div class="card">
+          <div class="card-header">
+            <h2>System Health & Status</h2>
+          </div>
+          <div class="health-list">
+            <div class="health-item">
+              <span class="health-key">Firebase FCM Connection</span>
+              <span class="badge" id="dash-firebase-badge">Checking...</span>
+            </div>
+            <div class="health-item">
+              <span class="health-key">Open Crash Issues</span>
+              <span class="badge badge-warning" id="dash-crashes-count">0 Open</span>
+            </div>
+            <div class="health-item">
+              <span class="health-key">Default AI Engine</span>
+              <span class="health-val">Gemini 1.5 Flash</span>
+            </div>
+            <div class="health-item">
+              <span class="health-key">Server Uptime</span>
+              <span class="health-val" id="dash-uptime">--</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- SECTION 2: BROADCAST PUSH -->
+    <!-- ==================================================================== -->
+    <div id="section-broadcast" class="page-section" style="display: none;">
+      <div class="dashboard-grid">
+        <!-- Form Section -->
+        <section class="card form-section">
+          <h2>Compose Push Notification</h2>
+
+          <form id="notify-form">
+            <div class="form-group">
+              <label for="title">Notification Title <span class="required">*</span></label>
+              <input type="text" id="title" placeholder="e.g. නව Theme එකක් ආවා!" required>
+            </div>
+
+            <div class="form-group">
+              <label for="body">Message Body <span class="required">*</span></label>
+              <textarea id="body" rows="3" placeholder="e.g. අලුත්ම Sunset theme එක දැන් පාවිච්චි කරලා බලන්න..."
+                required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Image (Optional)</label>
+              <div class="image-upload-wrapper">
+                <label for="imageFileInput" class="file-upload-btn" id="file-upload-label">
+                  📁 Upload Image from PC
+                  <input type="file" id="imageFileInput" accept="image/*" style="display: none;">
+                </label>
+                <span class="upload-or">OR</span>
+                <input type="url" id="imageUrl" placeholder="https://example.com/image.jpg">
+              </div>
+              <small id="upload-status-text">Choose an image file from PC to auto-upload OR paste an image URL.</small>
+            </div>
+
+            <button type="submit" class="btn-submit" id="btn-submit">
+              <span class="btn-text">🚀 Send to All Users</span>
+              <div class="spinner" id="spinner"></div>
+            </button>
+          </form>
+
+          <div id="status-message" class="status-message"></div>
+        </section>
+
+        <!-- Preview Section -->
+        <section class="card preview-section">
+          <h2>Live Mobile Preview</h2>
+
+          <div class="phone-mockup">
+            <div class="notification-preview">
+              <div class="notif-header">
+                <span class="notif-icon">⌨️</span>
+                <span class="notif-app-name">Kurutu Keyboard</span>
+                <span class="notif-time">now</span>
+              </div>
+
+              <div class="notif-content">
+                <h4 id="preview-title">නව Theme එකක් ආවා!</h4>
+                <p id="preview-body">අලුත්ම Sunset theme එක දැන් පාවිච්චි කරලා බලන්න...</p>
+              </div>
+
+              <div class="notif-image-container" id="preview-image-container" style="display: none;">
+                <img src="" id="preview-image" alt="Notification Image">
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Broadcast History Table -->
+      <section class="card mt-24">
+        <h2>Broadcast Notification History</h2>
+        <div class="table-container">
+          <table class="data-table" id="broadcast-table">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Title & Message</th>
+                <th>Image</th>
+                <th>Status</th>
+                <th>Recipients</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="broadcast-list-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- SECTION 3: THEME MANAGER -->
+    <!-- ==================================================================== -->
+    <div id="section-themes" class="page-section" style="display: none;">
+      <div class="dashboard-grid">
+        <!-- Visual Theme Builder -->
+        <div class="card form-section">
+          <h2>Create / Upload New Theme</h2>
+          <form id="theme-form">
+            <div class="form-group">
+              <label for="theme-name">Theme Name <span class="required">*</span></label>
+              <input type="text" id="theme-name" placeholder="e.g. Neon Cyberpunk" required>
+            </div>
+
+            <div class="color-picker-grid">
+              <div class="form-group">
+                <label for="theme-bg">Keyboard Background</label>
+                <div class="color-input-wrapper">
+                  <input type="color" id="theme-bg" value="#0f0c20">
+                  <input type="text" id="theme-bg-text" value="#0f0c20">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="theme-key-bg">Key Color</label>
+                <div class="color-input-wrapper">
+                  <input type="color" id="theme-key-bg" value="#1e1a3a">
+                  <input type="text" id="theme-key-bg-text" value="#1e1a3a">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="theme-key-text">Key Text Color</label>
+                <div class="color-input-wrapper">
+                  <input type="color" id="theme-key-text" value="#ffffff">
+                  <input type="text" id="theme-key-text-text" value="#ffffff">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="theme-accent">Accent Color</label>
+                <div class="color-input-wrapper">
+                  <input type="color" id="theme-accent" value="#a855f7">
+                  <input type="text" id="theme-accent-text" value="#a855f7">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="theme-json">Raw JSON Config (Optional)</label>
+              <textarea id="theme-json" rows="3"
+                placeholder='{ "background": "#0f0c20", "keys": "#1e1a3a" }'></textarea>
+            </div>
+
+            <button type="submit" class="btn-submit">🚀 Publish Theme</button>
+          </form>
+        </div>
+
+        <!-- Live Theme Keyboard Preview -->
+        <div class="card preview-section">
+          <h2>Live Keyboard Mockup</h2>
+          <div class="keyboard-mockup" id="theme-keyboard-preview">
+            <div class="kb-row">
+              <span class="kb-key">Q</span><span class="kb-key">W</span><span class="kb-key">E</span><span
+                class="kb-key">R</span><span class="kb-key">T</span><span class="kb-key">Y</span><span
+                class="kb-key">U</span><span class="kb-key">I</span><span class="kb-key">O</span><span
+                class="kb-key">P</span>
+            </div>
+            <div class="kb-row">
+              <span class="kb-key">A</span><span class="kb-key">S</span><span class="kb-key">D</span><span
+                class="kb-key">F</span><span class="kb-key">G</span><span class="kb-key">H</span><span
+                class="kb-key">J</span><span class="kb-key">K</span><span class="kb-key">L</span>
+            </div>
+            <div class="kb-row">
+              <span class="kb-key kb-special">⇧</span><span class="kb-key">Z</span><span class="kb-key">X</span><span
+                class="kb-key">C</span><span class="kb-key">V</span><span class="kb-key">B</span><span
+                class="kb-key">N</span><span class="kb-key">M</span><span class="kb-key kb-special">⌫</span>
+            </div>
+            <div class="kb-row">
+              <span class="kb-key kb-special">?123</span>
+              <span class="kb-key kb-space">කුරුටු Keyboard</span>
+              <span class="kb-key kb-accent">Enter ↵</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Published Themes Gallery Grid -->
+      <div class="card mt-24">
+        <h2>Published Theme Gallery</h2>
+        <div class="theme-grid" id="theme-gallery-grid">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- SECTION 4: AI MODEL SETTINGS -->
+    <!-- ==================================================================== -->
+    <div id="section-ai" class="page-section" style="display: none;">
+      <div class="dashboard-grid">
+        <!-- API Keys & Engine Form -->
+        <div class="card form-section">
+          <h2>AI API Configuration</h2>
+          <form id="ai-config-form">
+            <div class="form-group">
+              <label for="ai-gemini-key">Gemini API Key (Google AI Studio)</label>
+              <div class="input-with-action">
+                <input type="password" id="ai-gemini-key" placeholder="AIzaSyD..." value="AIzaSyD-KEY-GEMINI-DEMO">
+                <button type="button" class="btn-icon" id="btn-toggle-key-visibility" title="Show/Hide Key">👁️</button>
+              </div>
+              <small>Required for smart Sinhala grammar correction and context auto-completion.</small>
+            </div>
+
+            <div class="form-group">
+              <label for="ai-model-select">Active AI Model</label>
+              <select id="ai-model-select">
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fastest, Low Latency)</option>
+                <option value="gemini-1.5-pro">Gemini 1.5 Pro (Highest Accuracy)</option>
+                <option value="gpt-4o-mini">OpenAI GPT-4o Mini</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="ai-translation-engine">Translation Engine</label>
+              <select id="ai-translation-engine">
+                <option value="google-mlkit">Google ML Kit (On-Device, Offline)</option>
+                <option value="google-cloud">Google Cloud Translation API</option>
+                <option value="custom-gemini">Custom Gemini Translation Prompt</option>
+              </select>
+            </div>
+
+            <button type="button" class="btn-secondary" id="btn-test-ai-key">⚡ Test API Key Connection</button>
+            <div id="ai-test-result" class="status-message mt-12" style="display:none;"></div>
+          </form>
+        </div>
+
+        <!-- Smart Features & Controls -->
+        <div class="card form-section">
+          <h2>Smart Typing Features</h2>
+
+          <div class="toggle-group">
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <span class="toggle-title">Auto-Grammar Correction</span>
+                <span class="toggle-desc">Automatically suggest correct Sinhala grammar in real-time.</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="ai-toggle-grammar" checked>
+                <span class="slider round"></span>
+              </label>
+            </div>
+
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <span class="toggle-title">Sinhala Transliteration AI</span>
+                <span class="toggle-desc">Smart Singlish-to-Sinhala character predictions.</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="ai-toggle-translit" checked>
+                <span class="slider round"></span>
+              </label>
+            </div>
+
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <span class="toggle-title">Smart Auto-Reply Suggestions</span>
+                <span class="toggle-desc">Generate contextual quick responses for chat apps.</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="ai-toggle-reply">
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group mt-20">
+            <label for="ai-daily-limit">Daily AI Request Limit (Per User): <strong id="ai-limit-val">50</strong>
+              requests</label>
+            <input type="range" id="ai-daily-limit" min="10" max="200" step="5" value="50">
+          </div>
+
+          <button class="btn-submit" id="btn-save-ai-config">💾 Save AI Settings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- SECTION 5: USER MANAGEMENT -->
+    <!-- ==================================================================== -->
+    <div id="section-users" class="page-section" style="display: none;">
+      <!-- KPI Stats Row -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon icon-users">👥</div>
+          <div class="stat-info">
+            <h3>Registered Users</h3>
+            <p id="users-kpi-total">0</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-success">⚡</div>
+          <div class="stat-info">
+            <h3>Active Today</h3>
+            <p id="users-kpi-active">0</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-themes">👑</div>
+          <div class="stat-info">
+            <h3>Premium Subscribers</h3>
+            <p id="users-kpi-premium">0</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-crashes">🚫</div>
+          <div class="stat-info">
+            <h3>Banned Users</h3>
+            <p id="users-kpi-banned">0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Control Bar & User Table -->
+      <div class="card mt-20">
+        <div class="table-toolbar">
+          <div class="search-filter-box">
+            <input type="text" id="user-search-input" placeholder="Search by name, email, device or ID...">
+            <select id="user-status-filter">
+              <option value="ALL">All Statuses</option>
+              <option value="Active">Active Users</option>
+              <option value="Banned">Banned Users</option>
+              <option value="Premium">Premium Users</option>
+            </select>
+          </div>
+          <div class="action-btn-group" style="display: flex; gap: 8px;">
+            <button class="btn-primary" id="btn-add-user">+ Add Demo User</button>
+            <button class="btn-secondary" id="btn-clear-users" title="Clear Sample Users">🧹 Clear Data</button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>Name & Email</th>
+                <th>Device & OS</th>
+                <th>App Version</th>
+                <th>Status</th>
+                <th>Premium</th>
+                <th>Last Active</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================================================================== -->
+    <!-- SECTION 6: CRASH REPORTS -->
+    <!-- ==================================================================== -->
+    <div id="section-crashes" class="page-section" style="display: none;">
+      <!-- Stability KPI Row -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon icon-crashes">⚠️</div>
+          <div class="stat-info">
+            <h3>Open Crash Issues</h3>
+            <p id="crash-kpi-open">0</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-success">🛡️</div>
+          <div class="stat-info">
+            <h3>Crash-Free Rate</h3>
+            <p id="crash-kpi-rate">100%</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-ai">🔥</div>
+          <div class="stat-info">
+            <h3>Total Occurrences</h3>
+            <p id="crash-kpi-occurrences">0</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-users">📱</div>
+          <div class="stat-info">
+            <h3>Top Failing OS</h3>
+            <p id="crash-kpi-os">None</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters & Crash Reports Table -->
+      <div class="card mt-20">
+        <div class="table-toolbar">
+          <div class="pill-filter-group">
+            <span class="filter-label">Filter Severity:</span>
+            <button class="filter-pill active" data-filter-severity="ALL">All</button>
+            <button class="filter-pill" data-filter-severity="Critical">Critical</button>
+            <button class="filter-pill" data-filter-severity="Warning">Warning</button>
+          </div>
+          <div class="action-btn-group" style="display: flex; gap: 8px;">
+            <button class="btn-secondary" id="btn-simulate-crash">🧪 Report Test Crash</button>
+            <button class="btn-secondary" id="btn-clear-crashes" title="Clear Sample Crash Logs">🧹 Clear Logs</button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Exception & File</th>
+                <th>Severity</th>
+                <th>Occurrences</th>
+                <th>Affected Users</th>
+                <th>App & Device</th>
+                <th>Last Seen</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="crashes-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==================================================================== -->
+  <!-- MODAL: STACK TRACE VIEWER -->
+  <!-- ==================================================================== -->
+  <div class="modal-backdrop" id="modal-stacktrace-backdrop" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-crash-title">Stack Trace Details</h3>
+        <button class="modal-close" id="btn-close-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-meta-grid">
+          <div><strong>Component:</strong> <span id="modal-crash-component">--</span></div>
+          <div><strong>Device:</strong> <span id="modal-crash-device">--</span></div>
+          <div><strong>App Version:</strong> <span id="modal-crash-version">--</span></div>
+          <div><strong>Severity:</strong> <span id="modal-crash-severity">--</span></div>
+        </div>
+        <div class="form-group mt-16">
+          <label>Full Stack Trace Log</label>
+          <pre class="code-block" id="modal-crash-trace">--</pre>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="btn-copy-stacktrace">📋 Copy Stack Trace</button>
+        <button class="btn-primary" id="btn-resolve-crash-modal">Mark as Resolved</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

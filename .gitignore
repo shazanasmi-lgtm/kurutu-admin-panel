@@ -1,0 +1,7 @@
+# Admin Panel Secrets & Runtime Data
+.env
+serviceAccountKey.json
+data/
+public/uploads/
+node_modules/
+npm-debug.log
