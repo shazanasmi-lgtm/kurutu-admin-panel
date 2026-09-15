@@ -689,10 +689,14 @@ app.use((err, req, res, _next) => {
 // ────────────────────────────────────────────────────────────────────────────
 // START SERVER
 // ────────────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  const localIp = getLocalIp();
-  console.log(`🚀 Kurutu Admin Panel running at http://localhost:${PORT} (Network: http://${localIp}:${PORT})`);
-  console.log(`🔒 Admin authentication: ENABLED (X-Admin-Key header required)`);
-  console.log(`🛡️  Helmet security headers: ENABLED`);
-  console.log(`⚡ Rate limiting: ENABLED (200 req/15min general, 30 req/5min write ops)`);
-});
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    const localIp = getLocalIp();
+    console.log(`🚀 Kurutu Admin Panel running at http://localhost:${PORT} (Network: http://${localIp}:${PORT})`);
+    console.log(`🔒 Admin authentication: ENABLED (X-Admin-Key header required)`);
+    console.log(`🛡️  Helmet security headers: ENABLED`);
+    console.log(`⚡ Rate limiting: ENABLED (200 req/15min general, 30 req/5min write ops)`);
+  });
+}
+
+module.exports = app;
